@@ -1,21 +1,37 @@
+import time
+
 import pimoroni_trackball_circuitpy as tb
 import usb_hid
 from adafruit_hid.mouse import Mouse
 
+old_coord = (0, 0, 0)
+
 m = Mouse(usb_hid.devices)
 
-tb.set_leds_magenta()
+tb.set_leds_red()
 
-with tb.device:
-    multiplier = 9
+multiplier = 9
 
-    while True:
-        down, up, left, right, switch = tb.read()
+tb.set_leds_green()
 
-        # Send movements and clicks to xte
-        if switch:
-            m.click(Mouse.LEFT_BUTTON)
-        else:
-            x = right - left
-            y = down - up
-            m.move(int(-x * multiplier), int(-y * multiplier), 0)
+lastSetTime = time.monotonic()
+
+while True:
+    down, up, left, right, switch = tb.read()
+
+    # Enact movements and clicks
+    if switch:
+        m.click(Mouse.LEFT_BUTTON)
+        print(f"BUTN↓")
+    else:
+        x = right - left
+        y = down - up
+        xmult = int(-x * multiplier)
+        ymult = int(-y * multiplier)
+        new_coord = (xmult, ymult, 0)
+        if new_coord != old_coord:
+            timeNow = time.monotonic()
+            if timeNow - lastSetTime > 2:
+                print(f"MOUS↑↓←→")
+                lastSetTime = time.monotonic()
+        m.move(xmult, ymult, 0)
